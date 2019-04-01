@@ -581,7 +581,8 @@ export class IccContactXApi extends iccContactApi {
         ? c.measureValue
         : null) ||
       c.medicationValue ||
-      c.booleanValue
+      c.booleanValue ||
+      c.fuzzyDateValue
     )
   }
 
