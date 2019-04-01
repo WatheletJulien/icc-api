@@ -149,7 +149,8 @@ export class IccInvoiceXApi extends iccInvoiceApi {
   getNextInvoiceReference(prefix: string, entityrefApi: iccEntityrefApi): Promise<number> {
     return entityrefApi.getLatest(prefix).then((entRef: models.EntityReference) => {
       if (!entRef || !entRef.id || !entRef.id!.startsWith(prefix)) return 1
-      return Number(entRef.id!.split(":")[3]) + 1
+      const sequenceNumber = entRef.id!.split(":").pop() || 0
+      return Number(sequenceNumber) + 1
     })
   }
 
@@ -159,12 +160,20 @@ export class IccInvoiceXApi extends iccInvoiceApi {
     prefix: string,
     entityrefApi: iccEntityrefApi
   ): Promise<models.EntityReference> {
-    return entityrefApi.createEntityReference(
-      new models.EntityReference({
-        id: prefix + nextReference.toString().padStart(6, "0"),
-        docId
+    return entityrefApi
+      .createEntityReference(
+        new models.EntityReference({
+          id: prefix + nextReference.toString().padStart(6, "0"),
+          docId
+        })
+      )
+      .catch(err => {
+        console.log(err)
+        nextReference = nextReference + 1
+        this.createInvoiceReference(nextReference, docId, prefix, entityrefApi).catch(err =>
+          console.log(err)
+        )
       })
-    )
   }
 
   /**
